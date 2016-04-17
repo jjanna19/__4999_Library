@@ -68,7 +68,7 @@
 %% RSPLINE
 function [Ancalls, A, Afn, AFnVar, AFnGrad, AFnGradCov, ...
      Aconstraint, AConstraintCov, AConstraintGrad, ...
-     AConstraintGradCov] = RSPLINE(x0, problem, problemseed, ...
+     AConstraintGradCov] = RSPLINEOrig(x0, problem, problemseed, ...
      solverseed, budget, logfilename, minmax)
  
 % Solver parameters
@@ -95,9 +95,8 @@ AConstraintGrad=NaN;
 AConstraintGradCov=NaN;
 Asiseed=zeros(numfinalsoln, 1);
 
-% logfname=strcat(logfilename,'.txt');
-% logfid=fopen(logfname, 'w');
-logfid = 1;
+logfname=strcat(logfilename,'.txt');
+logfid=fopen(logfname, 'w');
 
 ncalls=0;	% tracks the total calls made to the oracle
 x1=x0;
@@ -108,16 +107,16 @@ budg=budget(length(budget));
 %Begin Retrospective Iterations
 while ncalls<budg && k<=kmax
 
-    % fprintf(logfid, '==== RETROSPECTIVE ITERATION k = %d ====\n', k);
+    fprintf(logfid, '==== RETROSPECTIVE ITERATION k = %d ====\n', k);
     % For deterministic constraints
     mk=ceil(mk*c1);
     bk=ceil(bk*c2);
     
-    % fprintf(logfid, 'mk = %d, bk = %d\n', mk, bk);
+    fprintf(logfid, 'mk = %d, bk = %d\n', mk, bk);
     
     xk=x1;
 
-    % fprintf(logfid, '===== BEGIN SPLINE =====\n');
+    fprintf(logfid, '===== BEGIN SPLINE =====\n');
 
 	[splinencalls, x1, x1fn, x1FnVar, ~, ~, ...
         solverseed] = SPLINE(problem, xk, mk, bk, problemseed, solverseed, ...
@@ -131,29 +130,29 @@ while ncalls<budg && k<=kmax
     if ncalls<=budget(bb)
         Ancalls(bb)=ncalls;
         A(bb,:) = x1';
-        Afn(bb)=-minmax*x1fn; %Afn(bb)=x1fn;
+        Afn(bb)=x1fn;
         AFnVar(bb)=x1FnVar;
         Asiseed(bb)=solverseed;
     elseif bb<length(budget)
         bb=bb+1;
         Ancalls(bb)=ncalls;
         A(bb,:) = x1';
-        Afn(bb)=-minmax*x1fn; %Afn(bb)=x1fn;
+        Afn(bb)=x1fn;
         AFnVar(bb)=x1FnVar;
         Asiseed(bb)=solverseed;
     end
     
     
-        % fprintf(logfid, '===== SPLINE ENDED =====\nncalls so far = %d, xbest.ghat = %0 .12f, xbest = [', ncalls, x1fn);
+        fprintf(logfid, '===== SPLINE ENDED =====\nncalls so far = %d, xbest.ghat = %0 .12f, xbest = [', ncalls, x1fn);
         for i=1:id
-			% fprintf(logfid, '%d ', x1(i));	
+			fprintf(logfid, '%d ', x1(i));	
         end
-        % fprintf(logfid, ']\n');
+        fprintf(logfid, ']\n');
         
         
 	k=k+1;
 end
-% fclose(logfid);
+fclose(logfid);
 end
 
 %% SPLINE
@@ -177,38 +176,38 @@ x0FnVar=xnewFnVar;
 x0constraint=xnewconstraint;
 x0ConstraintCov=xnewConstraintCov;
 
-% fprintf(logfid, '\t===== BEGIN SPLINE LOOP ===\n');
+fprintf(logfid, '\t===== BEGIN SPLINE LOOP ===\n');
 for i=1:bk
-	% fprintf(logfid, '\t\t=== bk = %d ===\n', i);
+	fprintf(logfid, '\t\t=== bk = %d ===\n', i);
 		
 	[SPLIncalls, xold, xoldfn, xoldFnVar, xoldcontsraint, ...
         xoldConstraintCov, sseed] = SPLI(problem, xnew, xnewfn, ...
         xnewFnVar, xnewconstraint, xnewConstraintCov, mk, iseed, sseed, ...
         logfid, minmax);
 	
-		% fprintf(logfid, '\t\t\t==== SPLI ends\n\t\t\txold = [');	
+		fprintf(logfid, '\t\t\t==== SPLI ends\n\t\t\txold = [');	
         for j=1:id
-			% fprintf(logfid, '%d ', xold(j));
+			fprintf(logfid, '%d ', xold(j));
         end
-		% fprintf(logfid, ']\n\t\t\txold.ghat = %.12f\n', xoldfn);
+		fprintf(logfid, ']\n\t\t\txold.ghat = %.12f\n', xoldfn);
 		
 	[NEncalls, xnew, xnewfn, xnewFnVar, xnewconstraint, ...
         xnewConstraintCov] = NE(problem, xold, xoldfn, ...
         xoldFnVar, xoldcontsraint, xoldConstraintCov, mk, iseed, ...
         logfid, minmax);
 
-        % fprintf(logfid, '\t\t\t==== NE ends\n\t\t\txnew = [');	
+        fprintf(logfid, '\t\t\t==== NE ends\n\t\t\txnew = [');	
         for j=1:id
-            % fprintf(logfid, '%d ', xnew(j));
+            fprintf(logfid, '%d ', xnew(j));
         end
-        % fprintf(logfid, ']\n\t\t\txnew.ghat = %.12f\n', xnewfn);
+        fprintf(logfid, ']\n\t\t\txnew.ghat = %.12f\n', xnewfn);
 
     ncalls = ncalls + SPLIncalls + NEncalls;
 
-        % fprintf(logfid, '\n\n\t\tSPLINE ncalls = prev ncalls + SPLI calls + NE calls = %d\n', ncalls);
+        fprintf(logfid, '\n\n\t\tSPLINE ncalls = prev ncalls + SPLI calls + NE calls = %d\n', ncalls);
         
     if  xoldfn==xnewfn
-		% fprintf(logfid, '\n\t\tSPLINE ended at bk=%d since NE and SPLI returned the same solution\n\n', i);
+		fprintf(logfid, '\n\t\tSPLINE ended at bk=%d since NE and SPLI returned the same solution\n\n', i);
 		break
     end
 end    
@@ -240,12 +239,12 @@ ncalls=0;
 y2=fn;
 ixquad=zeros(id,1);
 
-	% fprintf(logfid, '\n\t\t\t===== NE BEGINS =====\n');
-	% fprintf(logfid, '\t\t\tghat at center = %.12f, center = [', y2);
+	fprintf(logfid, '\n\t\t\t===== NE BEGINS =====\n');
+	fprintf(logfid, '\t\t\tghat at center = %.12f, center = [', y2);
     for i=1:id
-		% fprintf(logfid, '%d ', xnew(i));
+		fprintf(logfid, '%d ', xnew(i));
     end
-	% fprintf(logfid, ']\n');
+	fprintf(logfid, ']\n');
 
 for i=1:id
 	count=1;
@@ -292,13 +291,13 @@ for i=1:id
         if a-0.00005 > 0
 			xqnew = int32(xold(i) - (b / (a + a)));
         end
-		% fprintf(logfid, '\t\t\t\ti = %d, a = %.12f, b = %.12f, xqnew = %.12f\n', i, a, b, xqnew);
-		% fprintf(logfid, '\t\t\t\ty2 = %.12f, y1 = %.12f, y3 = %.12f\n', y2, y1, y3);
+		fprintf(logfid, '\t\t\t\ti = %d, a = %.12f, b = %.12f, xqnew = %.12f\n', i, a, b, xqnew);
+		fprintf(logfid, '\t\t\t\ty2 = %.12f, y1 = %.12f, y3 = %.12f\n', y2, y1, y3);
     end
     if  abs(xqnew) < 2147483646.0 %2^31-2
 		ixquad(i) = xqnew;
     end
-	% fprintf(logfid, '\t\t\t\txold[%d] = %d, ixquad[%d] = %d\n', i, xold(i), i, ixquad(i));
+	fprintf(logfid, '\t\t\t\txold[%d] = %d, ixquad[%d] = %d\n', i, xold(i), i, ixquad(i));
 end
 		
 [ixquadfn, ixquadFnVar, ~, ~, ixquadconstraint, ixquadConstraintCov, ...
@@ -315,11 +314,11 @@ if ~isnan(ixquadfn)
     end
 end
 
-        % fprintf(logfid, '\t\t\tixquad.ghat = %.12f, ixquad = [', ixquadfn);
+        fprintf(logfid, '\t\t\tixquad.ghat = %.12f, ixquad = [', ixquadfn);
         for i=1:id
-			% fprintf(logfid, '%d ', ixquad(i));
+			fprintf(logfid, '%d ', ixquad(i));
         end
-		% fprintf(logfid, ']\n');
+		fprintf(logfid, ']\n');
 end
 
 
@@ -332,7 +331,7 @@ id = length(x);
 imax=100;
 jmax=5;
 
-% fprintf(logfid, '\t\t\tBEGIN SPLI ===\n');
+fprintf(logfid, '\t\t\tBEGIN SPLI ===\n');
 
 xbest=x;
 xbestfn=fn;
@@ -346,35 +345,35 @@ c=2.0;
 			
 for j=0:jmax
     %PRINT TO LOGFILE
-    % fprintf(logfid, '\t\t\t\t=== j = %d ===\n', j);
-    % fprintf(logfid, '\t\t\t\ti/p seed to PERTURB = %d\n', sseed);
+    fprintf(logfid, '\t\t\t\t=== j = %d ===\n', j);
+    fprintf(logfid, '\t\t\t\ti/p seed to PERTURB = %d\n', sseed);
     %END PRINT
 
     [x1, sseed]=PERTURB(xbest, sseed, logfid);
 			
     %PRINT TO LOGFILE
-    % fprintf(logfid, '\t\t\t\tPertrubed value of xbest = [');
+    fprintf(logfid, '\t\t\t\tPertrubed value of xbest = [');
     for i=1:id
-        % fprintf(logfid, '%0.12f ', x1(i));
+        fprintf(logfid, '%0.12f ', x1(i));
     end
-    % fprintf(logfid, ']\n');
-    % fprintf(logfid, '\t\t\t\tPLI begins ===\n');		
+    fprintf(logfid, ']\n');
+    fprintf(logfid, '\t\t\t\tPLI begins ===\n');		
     %END PRINT
 
    [fbar, gamma, npoints, plixbest, plixbestfn, plixbestFnVar, ...
        plixbestconstraint, plixbestConstraintCov] = PLI(problem, ...
        x1, mk, iseed, logfid, minmax);
 		
-            % fprintf(logfid, '\t\t\t\t=== PLI ends\n');
-			% fprintf(logfid, '\t\t\t\tgbar = %.12f\n\t\t\t\tgamma = [',fbar);
+            fprintf(logfid, '\t\t\t\t=== PLI ends\n');
+			fprintf(logfid, '\t\t\t\tgbar = %.12f\n\t\t\t\tgamma = [',fbar);
             for i=1:id
-				% fprintf(logfid, '%.12f ', gamma(i));
+				fprintf(logfid, '%.12f ', gamma(i));
             end
-			% fprintf(logfid, ']\n\t\t\t\txbest.ghat = %.12f\n\t\t\t\txbest = [',plixbestfn);
+			fprintf(logfid, ']\n\t\t\t\txbest.ghat = %.12f\n\t\t\t\txbest = [',plixbestfn);
             for i=1:id	
-				% fprintf(logfid, '%d ', plixbest(i));
+				fprintf(logfid, '%d ', plixbest(i));
             end
-            % fprintf(logfid,']\n\t\t\t\tnpoints=%d\n', npoints);
+            fprintf(logfid,']\n\t\t\t\tnpoints=%d\n', npoints);
 
 	ncalls = ncalls + npoints*mk;	
 
@@ -393,7 +392,7 @@ for j=0:jmax
 			
 	glength=norm(gamma);
 	
-	% fprintf(logfid, '\t\t\t\tglength = %.12f\n', glength);
+	fprintf(logfid, '\t\t\t\tglength = %.12f\n', glength);
 		
     if glength + 0.00005 <= 0
 		return
@@ -411,11 +410,11 @@ for j=0:jmax
             = oracle(str2func(problem), ix1, mk, iseed, minmax);
 
         % PRINT TO LOGFILE
-        % fprintf(logfid, '\t\t\t\t\t== i = %d ==\n\t\t\t\t\ts = %.12f, ix1 = [', i, s);
+        fprintf(logfid, '\t\t\t\t\t== i = %d ==\n\t\t\t\t\ts = %.12f, ix1 = [', i, s);
         for k=1:id 
-            % fprintf(logfid, '%d ', ix1(k));
+            fprintf(logfid, '%d ', ix1(k));
         end
-        % fprintf(logfid, ']\n\t\t\t\t\tix1.ghat = %.12f\n', ix1fn);
+        fprintf(logfid, ']\n\t\t\t\t\tix1.ghat = %.12f\n', ix1fn);
         % END PRINT
 
         if isnan(ix1fn) % if ix1 is infeasible
@@ -461,16 +460,16 @@ wsum=0;
 fbar=0;
 
 %PRINT TO LOGFILE
-% fprintf(logfid, '\t\t\t\t\tp z w\n');
+fprintf(logfid, '\t\t\t\t\tp z w\n');
 for i=1:id+1
-    % fprintf(logfid, '\t\t\t\t\t%d %0.15f %0.15f\n', p(i), z(i), w(i));
+    fprintf(logfid, '\t\t\t\t\t%d %0.15f %0.15f\n', p(i), z(i), w(i));
 end
-% fprintf(logfid, '\n\t\t\t\t\ti=1, mk=%d\n', mk);	
-% fprintf(logfid, '\t\t\t\t\tx0 = [');
+fprintf(logfid, '\n\t\t\t\t\ti=1, mk=%d\n', mk);	
+fprintf(logfid, '\t\t\t\t\tx0 = [');
 for i=1:id
-    % fprintf(logfid, '%d ', x0(i));
+    fprintf(logfid, '%d ', x0(i));
 end
-% fprintf(logfid, ']\n');
+fprintf(logfid, ']\n');
 %END PRINT
 
 [x0fn, x0FnVar, ~, ~, x0constraint, x0ConstraintCov, ~, ~]=...
@@ -486,7 +485,7 @@ if ~isnan(x0fn)
 	plixbestconstraint=x0constraint;
 	plixbestConstraintCov=x0ConstraintCov;	
     
-    % fprintf(logfid, '\t\t\t\t\tx0.ghat = %.12f, w = %.12f, ghatold = %.12f, gbar = %.6f\n\n', x0fn, w(1), ghatold, fbar);
+    fprintf(logfid, '\t\t\t\t\tx0.ghat = %.12f, w = %.12f, ghatold = %.12f, gbar = %.6f\n\n', x0fn, w(1), ghatold, fbar);
 else
     ghatold = 0;
 	plixbestfn = strange;
@@ -496,13 +495,13 @@ for i=2:id+1
     x0(p(i)-1)=x0(p(i)-1)+1;
     
     % PRINT TO LOGFILE
-    % fprintf(logfid, '\n\t\t\t\t\ti = %d', i);
-    % fprintf(logfid, ', mk = %d\n', mk);		
-    % fprintf(logfid, '\t\t\t\t\tx0 = [');
+    fprintf(logfid, '\n\t\t\t\t\ti = %d', i);
+    fprintf(logfid, ', mk = %d\n', mk);		
+    fprintf(logfid, '\t\t\t\t\tx0 = [');
     for j=1:id
-        % fprintf(logfid, '%d ', x0(j));
+        fprintf(logfid, '%d ', x0(j));
     end
-    % fprintf(logfid, ']\n');
+    fprintf(logfid, ']\n');
     % END PRINT
     
     %call oracle at the other id points that form the simplex
@@ -516,8 +515,8 @@ for i=2:id+1
 		ghatold = x0fn;
 
         %PRINT TO LOGFILE
-        % fprintf(logfid, '\t\t\t\t\tx0.ghat = %.12f, w = %.12f, ghatold = %.12f\n', x0fn, w(i), ghatold);
-        % fprintf(logfid, '\t\t\t\t\tgbar=%0.6f, npoints=%d\n', fbar, npoints);
+        fprintf(logfid, '\t\t\t\t\tx0.ghat = %.12f, w = %.12f, ghatold = %.12f\n', x0fn, w(i), ghatold);
+        fprintf(logfid, '\t\t\t\t\tgbar=%0.6f, npoints=%d\n', fbar, npoints);
         %END PRINT		
         
         if plixbestfn == strange || x0fn + 0.00005 < plixbestfn
@@ -529,11 +528,11 @@ for i=2:id+1
         end
         
         %PRINT TO LOGFILE
-        % fprintf(logfid, '\t\t\t\t\txbest.ghat = %.12f\n\t\t\t\t\txbest = [', plixbestfn);
+        fprintf(logfid, '\t\t\t\t\txbest.ghat = %.12f\n\t\t\t\t\txbest = [', plixbestfn);
         for j=1:id
-            % fprintf(logfid, '%d ', plixbest(j));
+            fprintf(logfid, '%d ', plixbest(j));
         end
-        % fprintf(logfid, ']\n');
+        fprintf(logfid, ']\n');
         %END PRINT
     end
 end
@@ -543,7 +542,7 @@ if wsum > 0.00005
 end
 
 %PRINT TO LOGFILE
-% fprintf(logfid, '\n\t\t\t\t\tgbar = %.12f, npoints = %d\n', fbar, npoints);
+fprintf(logfid, '\n\t\t\t\t\tgbar = %.12f, npoints = %d\n', fbar, npoints);
 %END PRINT
 
 end
@@ -554,14 +553,14 @@ function [xpert, sseed] = PERTURB(x, sseed, logfid)
 
 id=length(x);
 xpert=zeros(id,1);
-	% fprintf(logfid, '\t\t\t\tPERTURB begins ==== \n');
+	fprintf(logfid, '\t\t\t\tPERTURB begins ==== \n');
 for i=1:id
-        % fprintf(logfid, '\t\t\t\t\t sseed = %d, ', sseed);
+        fprintf(logfid, '\t\t\t\t\t sseed = %d, ', sseed);
 	[sseed, u] = u16807d(sseed);
     xpert(i) = x(i) + .3*(u - 0.5);
-    % fprintf(logfid, 'u = %0.12f, xpert[%d] = %.12f\n', u, i, xpert(i));
+    fprintf(logfid, 'u = %0.12f, xpert[%d] = %.12f\n', u, i, xpert(i));
 end
-    % fprintf(logfid, '\t\t\t\t==== PERTURB ends\n');
+    fprintf(logfid, '\t\t\t\t==== PERTURB ends\n');
 end
 
 
@@ -617,4 +616,20 @@ function [fn, FnVar, FnGrad, FnGradCov, constraint, ConstraintCov, ...
 %    variance of expected objective function
 %    equals NaN if solution is infeasible
 %  FnGrad
+%    vector of estimate of gradient at x
+%  FnGardCov
+%    covariance matrix of gradient estimator at x
+%  constraint
+%    vector of constraint function estimators
+%  ConstraintCov
+%    covariance matrix of constraint extimators at x
+%  ConstraintGrad
+%    matrix of gradient estimators of constraint functions at x
+%  ConstraintGradCov
+%    3-dimensional covariance array of gradient estimators of constraint
+%    functions at x
 
+[fn, FnVar, FnGrad, FnGradCov, constraint, ConstraintCov, ...
+    ConstraintGrad, ConstraintGradCov] = orchandle(x, m, iseed, NaN);
+fn=-minmax*fn;
+end
