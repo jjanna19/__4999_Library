@@ -264,27 +264,10 @@ fprintf(logfid,'\nCompleted iterations.\n');
         tOpt = zeros(1,2);
         tOpt(1) = min(tmaxV(:,1));
         tOpt(2) = min(tmaxV(:,2));
-%         if sum(tmaxV<0)>0
-%             error('debug');
-%         end
+
         t = min(tOpt);
         modiSsolsV = ssolsV2 + t*stepV;
-%         for j1 = 1:col
-%             if stepV(j1) > 0
-%                 tmaxV(j1,2) = (VarBds(j1,2)-ssolsV2(j1))/stepV(j1);
-%             elseif stepV(j1) < 0
-%                 tmaxV(j1,1) = (VarBds(j1,2)-ssolsV2(j1))/stepV(j1);    
-%         
-%         tstep = 0.05; %arbitrary***
-%         stepV = ssolsV - ssolsV2;
-        
-%         for j = 1:col
-%             while ssolsV(j)<VarBds(j,1) || ssolsV(j)>VarBds(j,2)
-%                 t = t-tstep;
-%                 ssolsV = ssolsV2+t*stepV;
-%             end
-%         end
-        %modiSsolsV = ssolsV;
+
     end
 
 
