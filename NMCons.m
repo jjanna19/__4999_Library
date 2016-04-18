@@ -256,16 +256,12 @@ fprintf(logfid,'\nCompleted iterations.\n');
         uV = VarBds(stepV>0,2); uV = uV';
         lV = VarBds(stepV<0,1); lV = lV';
         if length(uV)>0
-            tmaxV(1,:) = (uV - ssolsV2(stepV>0)) ./ stepV(stepV>0);
+            tmaxV(1,stepV>0) = (uV - ssolsV2(stepV>0)) ./ stepV(stepV>0);
         end
         if length(lV)>0
-            tmaxV(2,:) = (lV - ssolsV2(stepV<0)) ./ stepV(stepV<0);
+            tmaxV(2,stepV<0) = (lV - ssolsV2(stepV<0)) ./ stepV(stepV<0);
         end
-        tOpt = zeros(1,2);
-        tOpt(1) = min(tmaxV(:,1));
-        tOpt(2) = min(tmaxV(:,2));
-
-        t = min(tOpt);
+        t = min(min(tmaxV));
         modiSsolsV = ssolsV2 + t*stepV;
 
     end

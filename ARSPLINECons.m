@@ -77,6 +77,38 @@ AConstraintGradCov = NaN;
 
 
 
+
+%%
+% Solver parameters
+kmax=1000;  % maximum number of retrospective iterations
+mk=8;       % initial sample size (for k=1)
+bk=10;      % mazximum number of SPLINE calls in the first retrospective 
+            % iteration 
+c1=1.1;     % growth rate of mk
+c2=1.1;     % growth rate of bk
+
+
+numfinalsoln=length(budget);
+id=length(x0);
+
+Ancalls = zeros(numfinalsoln, 1);
+A = zeros(numfinalsoln, id);
+Afn=zeros(numfinalsoln, 1);
+AFnVar=zeros(numfinalsoln, 1);
+Asiseed=zeros(numfinalsoln, 1);
+
+% logfname=strcat(logfilename,'.txt');
+% logfid=fopen(logfname, 'w');
+logfid = 1;
+
+ncalls=0;	% tracks the total calls made to the oracle
+x1=x0;
+k=1;
+bb=1;
+budg=budget(length(budget));
+
+
+
 % Set default values.
 r = 30; % Runlength time for each solution
 alpha = 1; % for Nelder-Mead

@@ -21,6 +21,7 @@ ConstraintGradCov = NaN;
 C=100;
 if (sum(x < 0)>0) || sum(x>C)>0  || (runlength <= 0) || (runlength ~= round(runlength)) || (seed <= 0) || (round(seed) ~= seed),
     fprintf('x should be >= 0 and <= C, runlength should be positive integer, seed must be a positive integer\n');
+    %error('ah');
     fn = NaN;
     FnVar = NaN;
     FnGrad = NaN;
