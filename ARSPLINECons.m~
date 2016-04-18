@@ -219,7 +219,7 @@ end
         zv = [1, zv, 0];
         pd = [0, pd, dim2+1]; %0 to d+1, length = d+2
         
-        xM = zeros(dim2+1,dim2); %x_i,x0 to xd
+        xM = zeros(dim2,dim2); %x_i
         xM(1,:) = x0v;
         for i2=2:dim2+1
             pi = pd(i2);

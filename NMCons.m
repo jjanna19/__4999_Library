@@ -92,7 +92,7 @@ RandStream.setGlobalStream(s1);
 problemstructhandle=str2func(strcat(problem, 'Structure'));
 [minmax, ~, ~, ~, VarBds, ~, ~, xc, ~, ~, ~] = problemstructhandle(1, problemseed);
 % check initSoln
-if dim ~= size(xc,2)
+if dim ~= size(xc,2) || (sum(x0'<VarBds(:,1))+sum(x0'>VarBds(:,2)))>0
     error('initial solution is wrong');
 end
 if min(budget) < r*numExtPts
